@@ -1,4 +1,4 @@
-![GitHub](https://img.shields.io/github/license/LaGGgggg/from-site-to-infopath-parser?label=License%3A)
+![GitHub](https://img.shields.io/github/license/LaGGgggg/from-site-to-infopath-parser?label=License)
 ![GitHub watchers](https://img.shields.io/github/watchers/LaGGgggg/from-site-to-infopath-parser)
 ![GitHub last commit](https://img.shields.io/github/last-commit/LaGGgggg/from-site-to-infopath-parser)
 [![wakatime](https://wakatime.com/badge/user/824414bb-4135-4fbc-abbd-0d007987e855/project/64a766b2-0a70-4e56-bd10-590a93fad061.svg)](https://wakatime.com/badge/user/824414bb-4135-4fbc-abbd-0d007987e855/project/64a766b2-0a70-4e56-bd10-590a93fad061)
