@@ -1,0 +1,4 @@
+dearpygui==1.8.0
+dearpygui-ext==0.9.5
+selenium==4.5.0
+lxml==4.9.1
