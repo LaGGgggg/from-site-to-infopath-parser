@@ -40,7 +40,6 @@ LOGIN_PASSWORD: str = environ.get('LOGIN_PASSWORD', 'unset')
 
 START_PAGE_URL: str = environ.get('START_PAGE_URL', 'unset')
 
-LOGOUT_URL: str = environ.get('LOGOUT_URL', 'unset')
 AFTER_LOGOUT_URL: str = environ.get('AFTER_LOGOUT_URL', 'unset')
 
 QUESTIONS_THEME: str = environ.get('QUESTIONS_THEME', 'unset')
@@ -51,7 +50,6 @@ ENV_VARS = {
     'LOGIN_LOGIN': LOGIN_LOGIN,
     'LOGIN_PASSWORD': LOGIN_PASSWORD,
     'START_PAGE_URL': START_PAGE_URL,
-    'LOGOUT_URL': LOGOUT_URL,
     'AFTER_LOGOUT_URL': AFTER_LOGOUT_URL,
     'QUESTIONS_THEME': QUESTIONS_THEME,
 }
@@ -516,7 +514,6 @@ def set_up_gui(driver: webdriver.Chrome) -> None:
         dpg.add_text(f'Parse from: {START_PAGE_URL}')
         dpg.add_text(f'Login url: {LOGIN_URL}')
         dpg.add_text(f'After login url: {AFTER_LOGIN_URL}')
-        dpg.add_text(f'Logout url: {LOGOUT_URL}')
         dpg.add_text(f'After logout url: {AFTER_LOGOUT_URL}')
         dpg.add_text(f'Questions theme: {QUESTIONS_THEME}')
 
