@@ -3,7 +3,6 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
-from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.service import Service as ChromeService
 from subprocess import CREATE_NO_WINDOW
 from os import environ
@@ -32,24 +31,6 @@ DOTENV_PATH = BASE_DIR.joinpath('.env')
 if DOTENV_PATH.exists():
     load_dotenv(DOTENV_PATH)
 
-SITE_CHOICES = ('sdo-vot', 'vmig.expert')
-SITE: str = environ.get('SITE', 'unset')
-
-if SITE in SITE_CHOICES:
-
-    if SITE == 'sdo-vot':
-
-        SDO_VOT_DOTENV_PATH = BASE_DIR.joinpath('sdo_vot.env')
-
-        if SDO_VOT_DOTENV_PATH.exists():
-            load_dotenv(SDO_VOT_DOTENV_PATH)
-
-    elif SITE == 'vmig.expert':
-
-        VMIG_EXPERT_DOTENV_PATH = BASE_DIR.joinpath('vmig_expert.env')
-
-        if VMIG_EXPERT_DOTENV_PATH.exists():
-            load_dotenv(VMIG_EXPERT_DOTENV_PATH)
 
 LOGIN_URL: str = environ.get('LOGIN_URL', 'unset')
 AFTER_LOGIN_URL: str = environ.get('AFTER_LOGIN_URL', 'unset')
@@ -72,7 +53,6 @@ ENV_VARS = {
     'START_PAGE_URL': START_PAGE_URL,
     'LOGOUT_URL': LOGOUT_URL,
     'AFTER_LOGOUT_URL': AFTER_LOGOUT_URL,
-    'SITE': SITE,
     'QUESTIONS_THEME': QUESTIONS_THEME,
 }
 
@@ -290,103 +270,7 @@ def is_parser_stopped_by_user(dpg_logger: DpgLogger) -> bool:
     return False
 
 
-def sdo_vot_handler(
-        driver: webdriver.Chrome,
-        dpg_logger: DpgLogger,
-        course_themes: dict[str, dict[str, dict[str, str]]] | dict[str, dict],
-        theme_text: str) -> None:
-
-    while True:
-
-        if is_parser_stopped_by_user(dpg_logger):
-            break
-
-        answer_options = driver.find_elements(By.CLASS_NAME, 'checkmark')
-
-        for answer_option in answer_options:
-            answer_option.click()
-
-        driver.find_element(By.XPATH, "//button[text()='Ответить']").click()
-
-        WebDriverWait(driver, 10).until(
-            expected_conditions.url_to_be(START_PAGE_URL), message='Answer page not loaded.'
-        )
-
-        question_text = \
-            driver.find_element(By.XPATH, '/html/body/main/div/div[2]/div[2]/div/div[3]/form/div[1]/b').text
-
-        if question_text not in course_themes[theme_text]:
-
-            answers: dict[str, str] = {}
-
-            bad_page = False
-
-            answers_tags = \
-                driver.find_elements(By.XPATH, '/html/body/main/div/div[2]/div[2]/div/div[3]/form/div[2]/div/label')
-
-            for answer in answers_tags:
-
-                answer_style = answer.get_attribute('style')
-
-                if not answer_style:
-
-                    info('Incorrect page, skip.')
-                    dpg_logger.log_info('Incorrect page, skip.')
-
-                    bad_page = True
-
-                    break
-
-                else:
-                    answer_style = answer_style.split(';')[0]
-
-                if answer_style == 'color: red':
-                    answers[answer.text.replace('\n', '')] = 'Неправильный ответ'
-
-                elif answer_style == 'color: green':
-                    answers[answer.text.replace('\n', '')] = 'Правильный ответ'
-
-                else:
-
-                    warning(f'Unknown answer style has been founded! ({answer_style})')
-                    dpg_logger.log_warning(f'Unknown answer style has been founded! ({answer_style})')
-
-            if bad_page:
-                continue
-
-            course_themes[theme_text][question_text] = answers
-
-            comment = ''
-
-            try:
-
-                comment_tags = \
-                    driver.find_elements(By.XPATH, '/html/body/main/div/div[2]/div[2]/div/div[3]/form/div[3]/p')
-
-                for comment_tag in comment_tags:
-                    comment += f'\n{comment_tag.text}'
-
-            except NoSuchElementException:
-                pass
-
-            course_themes[theme_text][question_text]['comment'] = comment
-
-            save_results_to_xml_file(RESULT_FILENAME, course_themes, dpg_logger)
-
-            info(f'Question saved in file ({question_text[:40]}...)')
-            dpg_logger.log_info(f'Question saved in file ({question_text[:40]}...)')
-
-        else:
-
-            warning(f'The page has not been saved, the question has already been added. ({question_text[:40]}...)')
-            dpg_logger.log_warning(
-                f'The page has not been saved, the question has already been added. ({question_text[:40]}...)'
-            )
-
-        driver.find_element(By.XPATH, "//button[text()='Следующий вопрос']").click()
-
-
-def vmig_expert_handler(
+def run_parser(
         driver: webdriver.Chrome,
         dpg_logger: DpgLogger,
         course_themes: dict[str, dict[str, dict[str, str]]] | dict[str, dict],
@@ -515,16 +399,7 @@ def parsing_controller(driver: webdriver.Chrome, theme_text: str, dpg_logger: Dp
 
         return
 
-    if SITE == 'sdo-vot':
-        sdo_vot_handler(driver, dpg_logger, course_themes, theme_text)
-
-    elif SITE == 'vmig.expert':
-        vmig_expert_handler(driver, dpg_logger, course_themes, theme_text)
-
-    else:
-
-        error(f'Bad SITE environment variable, not supported by parsing_controller. ({SITE})')
-        dpg_logger.log_error(f'Bad SITE environment variable, not supported by parsing_controller. ({SITE})')
+    run_parser(driver, dpg_logger, course_themes, theme_text)
 
 
 def login(driver: webdriver.Chrome, dpg_logger: DpgLogger) -> None:
@@ -553,17 +428,12 @@ def logout(driver: webdriver.Chrome, dpg_logger: DpgLogger) -> None:
 
     next_page_not_loaded_error_message = 'The page that should be loaded after logging out did not load.'
 
-    if SITE == 'sdo-vot':
-        driver.get(LOGOUT_URL)
+    driver.get(AFTER_LOGIN_URL)
 
-    elif SITE == 'vmig.expert':
+    sleep(randint(6, 12))
 
-        driver.get(AFTER_LOGIN_URL)
-
-        sleep(randint(6, 12))
-
-        driver.find_element(By.ID, 'navbarDropdown2').click()
-        driver.find_element(By.XPATH, "//a[text()='Выход']").click()
+    driver.find_element(By.ID, 'navbarDropdown2').click()
+    driver.find_element(By.XPATH, "//a[text()='Выход']").click()
 
     WebDriverWait(driver, 10).until(
         expected_conditions.url_to_be(AFTER_LOGOUT_URL), message=next_page_not_loaded_error_message
@@ -574,17 +444,6 @@ def logout(driver: webdriver.Chrome, dpg_logger: DpgLogger) -> None:
 
 
 def check_env_vars_set(dpg_logger: DpgLogger) -> bool:
-
-    if ENV_VARS['SITE'] not in SITE_CHOICES:
-
-        error(
-            f'The environment variable "SITE" is not set! The parser is not running. Choices: {",".join(SITE_CHOICES)}'
-        )
-        dpg_logger.log_error(
-            f'The environment variable "SITE" is not set! The parser is not running. Choices: {",".join(SITE_CHOICES)}'
-        )
-
-        return False
 
     for env_var in ENV_VARS.items():
         if env_var[1] in ('unset', '', ' '):
@@ -659,7 +518,6 @@ def set_up_gui(driver: webdriver.Chrome) -> None:
         dpg.add_text(f'After login url: {AFTER_LOGIN_URL}')
         dpg.add_text(f'Logout url: {LOGOUT_URL}')
         dpg.add_text(f'After logout url: {AFTER_LOGOUT_URL}')
-        dpg.add_text(f'Site: {SITE}')
         dpg.add_text(f'Questions theme: {QUESTIONS_THEME}')
 
         if check_env_vars_set(dpg_logger):
