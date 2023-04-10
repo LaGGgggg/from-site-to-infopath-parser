@@ -16,6 +16,8 @@ from threading import Thread
 from lxml import etree
 from logging import getLogger, info, warning, error, basicConfig, INFO
 from dearpygui_ext.logger import mvLogger as DpgLogger
+from selenium.webdriver.common.action_chains import ActionChains
+from datetime import datetime
 
 
 basicConfig(level=INFO)
@@ -376,8 +378,8 @@ def sdo_vot_handler(
 
         else:
 
-            info(f'The page has not been saved, the question has already been added. ({question_text[:40]}...)')
-            dpg_logger.log_info(
+            warning(f'The page has not been saved, the question has already been added. ({question_text[:40]}...)')
+            dpg_logger.log_warning(
                 f'The page has not been saved, the question has already been added. ({question_text[:40]}...)'
             )
 
@@ -392,14 +394,24 @@ def vmig_expert_handler(
 
     modal_tag = driver.find_element(By.XPATH, '/html/body/app-root/ng-component/vmig-modal/div[2]')
 
+    question_counter: int = 0
+
+    start_time = datetime.now()
+
     for question_button in driver.find_elements(By.XPATH, '/html/body/app-root/ng-component/div/section/button'):
+
+        question_counter += 1
 
         if is_parser_stopped_by_user(dpg_logger):
             break
 
+        actions = ActionChains(driver)
+
+        actions.move_to_element(question_button).perform()
+
         question_button.click()  # open question content window
 
-        sleep(2)
+        sleep(1)
 
         question_content = driver.find_element(
             By.XPATH, '/html/body/app-root/ng-component/vmig-modal/div[2]/student-question/div[2]'
@@ -411,7 +423,20 @@ def vmig_expert_handler(
 
             answers: dict[str, str] = {}
 
-            for answer in question_content.find_elements(By.XPATH, 'ul[1]/li'):
+            answers_elements = question_content.find_elements(By.XPATH, 'ul[1]/li')
+
+            if not answers_elements:
+
+                info(f'No answers to the question, skip it. ({question_counter}) ({question_text})')
+                dpg_logger.log_info(f'No answers to the question, skip it. ({question_counter}) ({question_text})')
+
+                modal_tag.find_element(By.CLASS_NAME, 'btn-close').click()  # close question content window
+
+                sleep(1)
+
+                continue
+
+            for answer in answers_elements:
 
                 answer_class = answer.get_attribute('class')
 
@@ -439,19 +464,25 @@ def vmig_expert_handler(
 
             save_results_to_xml_file(RESULT_FILENAME, course_themes, dpg_logger)
 
-            info(f'Question saved in file ({question_text[:40]}...)')
-            dpg_logger.log_info(f'Question saved in file ({question_text[:40]}...)')
+            past_time = datetime.now() - start_time
+
+            info(f'Question saved in file ({question_counter}) (past time: {past_time}) ({question_text[:40]}...)')
+            dpg_logger.log_info(
+                f'Question saved in file ({question_counter}) (past time: {past_time}) ({question_text[:40]}...)'
+            )
 
         else:
 
-            info(f'The page has not been saved, the question has already been added. ({question_text[:40]}...)')
-            dpg_logger.log_info(
-                f'The page has not been saved, the question has already been added. ({question_text[:40]}...)'
+            warning(f'The page has not been saved, the question has already been added.'
+                    f' ({question_counter}) ({question_text[:40]}...)')
+            dpg_logger.log_warning(
+                f'The page has not been saved, the question has already been added.'
+                f' ({question_counter}) ({question_text[:40]}...)'
             )
 
         modal_tag.find_element(By.CLASS_NAME, 'btn-close').click()  # close question content window
 
-        sleep(2)
+        sleep(1)
 
 
 def parsing_controller(driver: webdriver.Chrome, theme_text: str, dpg_logger: DpgLogger) -> None:
