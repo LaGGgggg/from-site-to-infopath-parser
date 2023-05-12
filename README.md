@@ -7,7 +7,7 @@
 
 # From site to infopath parser
 
-It's a simple parser, that can parse data from two websites (you can choose which one) and
+It's a simple parser, that can parse data from [this website](https://vmig.expert) and
 saves it in the infopath xml file. The parser has a GUI and logging,
 can save data to a new file and parse different data from one site (more on that later).
 
@@ -47,15 +47,20 @@ pip install -r requirements.txt
 
 ### 5. Environment variables:
 
-There are three .env files in the project. One main and two for each of the sites.
-To change the site being parsed, change the key in the main '.env' file.
-(keys: 'sdo-vot', 'vmig.expert')
+**.env**
+```dotenv
+LOGIN_URL=https://vmig.expert/login
+AFTER_LOGIN_URL=https://vmig.expert/student
 
-The project includes all .env files with launch settings, excluding login, password,
-start page (link, where the parsing starts) and the topic of the questions
-(a cosmetic variable for the result file field).
+LOGIN_LOGIN=
+LOGIN_PASSWORD=
 
-You should set all environment variables in the two .env files you use.
+START_PAGE_URL=<>  #
+
+AFTER_LOGOUT_URL=https://vmig.expert/login
+
+QUESTIONS_THEME='<>'  # 
+```
 
 ### 6. Run main .py file
 
