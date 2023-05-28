@@ -145,46 +145,6 @@ def get_driver() -> webdriver.Chrome:
 
     return driver
 
-#
-# def get_current_work_from_file() -> dict[str: str] | dict:
-#     if CURRENT_WORK_FILE_PATH.exists():
-#         with open(CURRENT_WORK_FILE_PATH, 'r') as f:
-#
-#             lines = f.readlines()
-#
-#             if not lines:
-#                 return {}
-#
-#             result = {}
-#
-#             for line_counter, line in enumerate(lines):
-#
-#                 line_splitted = line.split('|')
-#
-#                 if line_counter == 0:
-#
-#                     try:
-#                         result['all_courses_number'] = int(line_splitted[0])
-#                         result['completed_courses_number'] = int(line_splitted[1])
-#
-#                     except ValueError:
-#
-#                         error(
-#                             f'Incorrect all_courses_number or completed_courses_number value (not integer) in file:'
-#                             f' "{CURRENT_WORK_FILENAME}". (value: "{line_splitted[0]}" or "{line_splitted[1]}")'
-#                         )
-#
-#                         return {}
-#
-#                 else:
-#                     result[line_splitted[0]] = line_splitted[1]
-#
-#
-# def update_current_work_file(current_work: dict[str: str] | dict) -> None:
-#     with open(CURRENT_WORK_FILE_PATH, 'w+') as f:
-#         for key, value in current_work.items():
-#             f.write(f'{key}|{value}\n')
-
 
 """
 course = {
