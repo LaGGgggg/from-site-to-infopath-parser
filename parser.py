@@ -247,7 +247,14 @@ def save_course_to_xml_file(
     etree.SubElement(extension_element, f'{MY_NSMAP}DisplayName')
     etree.SubElement(extension_element, f'{MY_NSMAP}LinkAddress')
 
-    filename = f"{course['course_name']}.xml".replace('..', '.')  # replace prevent from this: "filename..xml"
+    course_name_short = course['course_name']
+
+    if len(course_name_short) > 240:
+
+        course_name_short = course_name_short[:200]
+        warning(f'Too long name founded: "{course["course_name"]}"')
+
+    filename = f"{course_name_short}.xml".replace('..', '.')  # replace prevent from this: "filename..xml"
 
     # \\\\?\\ is needed for the long filenames
     etree.ElementTree(main_element).write(
