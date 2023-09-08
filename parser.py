@@ -133,7 +133,7 @@ def get_driver() -> webdriver.Chrome:
 
     chrome_options.add_experimental_option('prefs', prefs)
 
-    chrome_service = ChromeService('chromedriver')
+    chrome_service = ChromeService()
 
     chrome_service.creationflags = CREATE_NO_WINDOW
 
