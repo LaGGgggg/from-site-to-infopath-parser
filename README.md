@@ -52,14 +52,18 @@ pip install -r requirements.txt
 LOGIN_URL=https://vmig.expert/login
 AFTER_LOGIN_URL=https://vmig.expert/student
 
-LOGIN_LOGIN=
-LOGIN_PASSWORD=
-
-START_PAGE_URL=<>  #
+START_PAGE_URL=https://vmig.expert/student
 
 AFTER_LOGOUT_URL=https://vmig.expert/login
 
-QUESTIONS_THEME='<>'  # 
+LOGIN_LOGINS='
+
+'
+
+LOGIN_PASSWORDS='
+
+'
+
 ```
 
 ### 6. Run main .py file
